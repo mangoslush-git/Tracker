@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="천천히 쌓기">
+<meta name="theme-color" content="#F3F4EE">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>천천히 쌓기</title>
+<style>
+:root{
+  --bg:#F3F4EE; --card:#FFFDF9; --ink:#2B2F36; --sub:#7A7F88; --line:#E3E3D8;
+  --g:#4F7F5B; --g-soft:#DCEBDD; --g-line:#BCD5BF;
+  --s:#9DB88F; --s-soft:#EEF3E6; --s-line:#D8E3CC; --amber:#A07A2C;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(90px + env(safe-area-inset-bottom))}
+button{font-family:inherit}
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.tabs button{flex:1;max-width:173px;background:none;border:0;padding:12px 0 10px;font-size:13px;color:var(--sub);cursor:pointer}
+.tabs button .ic{display:block;font-size:20px;margin-bottom:2px}
+.tabs button.on{color:var(--g);font-weight:700}
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.nav{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px;color:var(--ink);cursor:pointer}
+.nav:disabled{opacity:.3}
+.ttl{text-align:center}
+.ttl h1{font-size:20px;margin:0}
+.ttl .s{font-size:13px;color:var(--sub);margin-top:2px}
+.summary{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--sub);margin-bottom:6px;line-height:1.55;display:flex;gap:12px;align-items:center}
+.summary b{color:var(--ink)}
+.summary .big{font-size:34px;line-height:1}
+.slot{margin:18px 0 6px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--sub)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.item.full{background:var(--g-soft);border-color:var(--g-line)}
+.item.min{background:var(--s-soft);border-color:var(--s-line)}
+.check{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#fff}
+.item.full .check{background:var(--g);border-color:var(--g)}
+.item.min .check{background:var(--s);border-color:var(--s)}
+.body{flex:1;min-width:0;cursor:pointer}
+.label{font-size:15px;font-weight:600}
+.meta{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:#F3EBD8;color:var(--amber);margin-top:4px}
+.tag.w{background:#E4EFE3;color:var(--g)}
+.minbtn{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:12px;color:var(--g);cursor:pointer;max-width:96px;line-height:1.3}
+.item.min .minbtn{background:var(--s);color:#fff;border-color:var(--s)}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:10px;font-size:14px;line-height:1.6}
+summary{cursor:pointer;font-weight:600}
+details ol,details ul{padding-left:20px;margin:8px 0}
+.note{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px;background:var(--card);color:var(--ink);font-family:inherit}
+h2{font-size:14px;margin:24px 0 8px;color:var(--sub)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{font-size:11px;color:var(--sub);text-align:center;padding:2px 0 4px}
+.day{aspect-ratio:1/1.08;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4px;cursor:pointer;position:relative}
+.day .n{font-size:11px;color:var(--sub)}
+.day .st{font-size:24px;line-height:1.1;margin-top:1px}
+.day.some{background:var(--s-soft);border-color:var(--s-line)}
+.day.good{background:var(--g-soft);border-color:var(--g-line)}
+.day.today{outline:2px solid var(--g);outline-offset:-1px}
+.day.empty{visibility:hidden}
+.day.future{opacity:.45;cursor:default}
+.day .bar{position:absolute;left:6px;right:6px;bottom:5px;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.day .bar i{display:block;height:100%;background:var(--g)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:11px;color:var(--sub)}
+.hrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+.hrow .nm{width:92px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .track{flex:1;height:10px;background:#EFEFE6;border-radius:6px;overflow:hidden;display:flex}
+.hrow .track i{display:block;height:100%}
+.hrow .num{width:62px;text-align:right;color:var(--sub);font-size:12px}
+.legend{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6}
+.msg{font-size:14px;line-height:1.6}
+.btn{display:block;width:100%;border:1px solid var(--g-line);background:var(--g-soft);color:var(--g);border-radius:12px;padding:12px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer}
+.btn.plain{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:500}
+.row{display:flex;gap:8px;align-items:center;font-size:14px}
+.row input{font-family:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink);font-size:14px}
+.small{font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--g);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;white-space:nowrap}
+.toast.on{opacity:1}
+.pop{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap"></div>
+<nav class="tabs">
+  <button data-tab="today"><span class="ic">🌱</span>오늘</button>
+  <button data-tab="month"><span class="ic">🗓</span>이번 달</button>
+  <button data-tab="more"><span class="ic">📤</span>기록·설정</button>
+</nav>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script>
+/* ================== 설정 ================== */
+const HABITS = [
+  {id:"med",   slot:"아침",           label:"약 먹기",          meta:"아토목세틴 + 플루옥세틴, 같은 시간에", min:null, week:1, daily:true},
+  {id:"light", slot:"아침",           label:"햇빛 10분",        meta:"출근길로 해결해도 OK", min:"창가 1분", week:1, daily:true},
+  {id:"rest",  slot:"13:30 회복",     label:"누워서 20분",      meta:"화면 끄고 음성만 (요가 니드라, 팟캐스트)", min:"눈 감고 5분", week:1, daily:true, weekday:true},
+  {id:"walk",  slot:"14:00",          label:"산책 10~15분",     meta:"빛 + 움직임 = 식곤증·불안 ↓", min:"현관 밖 5분", week:1, daily:true},
+  {id:"str",   slot:"16:30",          label:"근력운동 15분",    meta:"이틀 연속 X · 처음 2주는 1세트", min:"스쿼트 10개", week:1, target:2},
+  {id:"tidy",  slot:"저녁",           label:"정리 10분",        meta:"쓰레기 · 설거지 · 빨래 · 제자리 · 제자리 없는 것", min:"쓰레기 하나", week:3, daily:true},
+  {id:"study", slot:"16:30",          label:"공부 30분",        meta:"근력운동 없는 날에", min:"교재 펴고 5분", week:5, target:3},
+  {id:"make",  slot:"이번 주 아무 때", label:"창작 15분",        meta:"결과물 없이 손만 움직이기", min:"선 하나", week:7, target:1},
+];
+const SLOT_ORDER = ["아침","13:30 회복","14:00","16:30","저녁","이번 주 아무 때"];
+const WD = ["일","월","화","수","목","금","토"];
+const STICK_GOOD  = ["🌷","🌼","🍓","🍊","🫐","🍑","🐣","🐝","🧁","🍋","🌱","🐞"];   // 절반 이상
+const STICK_GREAT = ["🌈","🦄","🐬","🦋","🌻","🍀","🐸","🦩","🐙","🍉","🌸","⭐"];   // 80% 이상
+const KEY = "chunchunhi-v1";
+
+/* ================== 날짜 ================== */
+const pad=n=>String(n).padStart(2,"0");
+const keyOf=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayKey=()=>keyOf(new Date());
+const parse=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=parse(k);d.setDate(d.getDate()+n);return keyOf(d)};
+const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
+const mondayOf=k=>{const d=parse(k);d.setDate(d.getDate()-(d.getDay()+6)%7);return keyOf(d)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================== 저장 ================== */
+let store={start:null,days:{}};
+let storageOK=true;
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.days)store=s}catch(e){storageOK=false}
+if(!store.start){store.start=todayKey();save()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));storageOK=true}catch(e){storageOK=false}}
+
+/* ================== 계산 ================== */
+const weekNum=k=>Math.max(1,Math.floor(daysBetween(store.start,k)/7)+1);
+const dayData=k=>store.days[k]||{c:{},note:""};
+const state=(k,id)=>(dayData(k).c||{})[id]||"";
+function activeOn(k){
+  if(k<store.start)return [];
+  const w=weekNum(k), wd=parse(k).getDay(), isWeekday=wd>=1&&wd<=5;
+  return HABITS.filter(h=>w>=h.week&&(!h.weekday||isWeekday));
+}
+function score(k){ // 0~1. 최소 버전은 0.75점
+  const act=activeOn(k); if(!act.length)return {done:0,total:0,ratio:0};
+  let pts=0,done=0; act.forEach(h=>{const s=state(k,h.id); if(s){done++;pts+=s==="full"?1:.75}});
+  return {done,total:act.length,ratio:pts/act.length};
+}
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+function sticker(k){
+  const {ratio,done}=score(k); if(!done)return null;
+  if(ratio>=.8)return {e:STICK_GREAT[hash(k)%STICK_GREAT.length],lvl:"great"};
+  if(ratio>=.5)return {e:STICK_GOOD[hash(k)%STICK_GOOD.length],lvl:"good"};
+  return {e:null,lvl:"some"};
+}
+const weekCount=(k,id)=>{const m=mondayOf(k);let n=0;for(let i=0;i<7;i++)if(state(addDays(m,i),id))n++;return n};
+
+/* ================== 상태 ================== */
+let tab="today", viewDate=todayKey(), viewMonth=todayKey().slice(0,7);
+
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),1800)}
+
+function toggle(id,kind){
+  const k=viewDate, before=sticker(k);
+  const d=JSON.parse(JSON.stringify(dayData(k))); d.c=d.c||{};
+  if(d.c[id]===kind)delete d.c[id]; else d.c[id]=kind;
+  store.days[k]=d; save();
+  const after=sticker(k);
+  const rank=s=>!s?0:s.lvl==="some"?0:s.lvl==="good"?1:2;
+  if(rank(after)>rank(before)){toast(after.e+" 스티커 받았어!");render(true)} else render();
+}
+let noteT=null;
+function onNote(v){const k=viewDate;const d=JSON.parse(JSON.stringify(dayData(k)));d.c=d.c||{};d.note=v;store.days[k]=d;clearTimeout(noteT);noteT=setTimeout(save,500)}
+
+/* ================== 오늘 ================== */
+function renderToday(popSticker){
+  const k=viewDate,t=todayKey(),d=parse(k);
+  const act=activeOn(k), st=sticker(k), sc=score(k);
+  let h=`<header>
+    <button class="nav" id="prev">‹</button>
+    <div class="ttl"><h1>${k===t?"오늘 · ":""}${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})</h1>
+    <div class="s">${k>=store.start?weekNum(k)+"주차":"시작 전"}</div></div>
+    <button class="nav" id="next" ${k>=t?"disabled":""}>›</button></header>`;
+  if(!storageOK)h+=`<div class="summary">⚠️ 이 브라우저에서는 저장이 안 되고 있어. 홈 화면에 추가한 앱으로 열어 줘.</div>`;
+  h+=`<div class="summary"><div class="big ${popSticker&&st&&st.e?"pop":""}">${st&&st.e?st.e:"·"}</div><div>${
+    !sc.done?`아직 아무것도 안 해도 괜찮아. 하나만 골라서 최소 버전부터.`
+    :st.e?`오늘 한 것 <b>${sc.done}개</b>. 스티커 받았어.`
+    :`오늘 한 것 <b>${sc.done}개</b>. 절반 넘기면 스티커가 붙어.`}</div></div>`;
+  if(!act.length)h+=`<div class="card msg">시작일(${store.start}) 이전 날짜야.</div>`;
+  SLOT_ORDER.forEach(slot=>{
+    const items=act.filter(x=>x.slot===slot); if(!items.length)return;
+    h+=`<div class="slot">${slot}</div>`;
+    items.forEach(x=>{
+      const s=state(k,x.id); let tag="";
+      if(x.daily&&!s){const y=addDays(k,-1); if(activeOn(y).some(a=>a.id===x.id)&&!state(y,x.id))tag=`<div class="tag">어제 쉼 → 오늘은 최소만 해도 OK</div>`}
+      if(x.target)tag=`<div class="tag w">이번 주 ${weekCount(k,x.id)} / ${x.target}</div>`;
+      h+=`<div class="item ${s}">
+        <div class="check" data-a="full" data-id="${x.id}">${s==="full"?"✓":s==="min"?"½":""}</div>
+        <div class="body" data-a="full" data-id="${x.id}"><div class="label">${esc(x.label)}</div><div class="meta">${esc(x.meta)}</div>${tag}</div>
+        ${x.min?`<button class="minbtn" data-a="min" data-id="${x.id}">최소: ${esc(x.min)}</button>`:""}
+      </div>`;
+    });
+  });
+  h+=`<details><summary>💪 근력운동 루틴 (15분)</summary><ol>
+      <li>의자 스쿼트 8~10회</li><li>벽 푸시업 또는 무릎 푸시업 8~10회</li><li>글루트 브릿지 10회</li>
+      <li>데드버그 양쪽 6회씩</li><li>무릎 대고 플랭크 15~20초</li></ol>
+      처음 2주는 1세트만. 끝나면 폼롤러로 허벅지·등 풀기. 매트는 깔아 둔 채로.</details>
+    <details><summary>🛋 13:30 회복 시간</summary><ul>
+      <li>타이머 20분. 넘기면 더 멍해져.</li><li>폰은 엎어 두고 소리만. "요가 니드라 20분"이나 한국어 팟캐스트.</li>
+      <li>잠 안 와도 괜찮아. 누워 있는 것만으로 회복이야.</li><li>일어나면 바로 신발 신고 산책.</li></ul></details>
+    <details><summary>📌 규칙</summary><ul>
+      <li>하루 빠지는 건 괜찮아. 두 번 연속만 피하기.</li>
+      <li>안 한 날은 실패가 아니라 정보. "뭐가 방해했지?"만 물어보기.</li>
+      <li>새 습관은 주차에 맞춰 자동으로 열려.</li></ul></details>
+    <h2>한 줄 메모 (선택)</h2>
+    <input class="note" id="note" placeholder="오늘 방해한 것, 좋았던 것, 아무거나" value="${esc(dayData(k).note||"")}">
+    <h2>다음에 추가될 것</h2><div class="card msg" style="color:var(--sub);font-size:13px">${nextUp(k)}</div>`;
+  return h;
+}
+function nextUp(k){
+  const w=weekNum(k), up=HABITS.filter(x=>x.week>w);
+  if(!up.length)return "전부 열렸어. 이제는 유지만.";
+  return up.map(x=>{const d=parse(addDays(store.start,(x.week-1)*7));return `${esc(x.label)} · ${x.week}주차부터 (${d.getMonth()+1}/${d.getDate()})`}).join("<br>");
+}
+
+/* ================== 이번 달 ================== */
+function monthDays(ym){const [y,m]=ym.split("-").map(Number);const n=new Date(y,m,0).getDate();return [...Array(n)].map((_,i)=>ym+"-"+pad(i+1))}
+function shiftMonth(ym,n){const [y,m]=ym.split("-").map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+"-"+pad(d.getMonth()+1)}
+function monthStats(ym){
+  const t=todayKey(), days=monthDays(ym).filter(k=>k<=t&&k>=store.start);
+  let good=0,great=0,anyDays=0,ratioSum=0; const per={};
+  HABITS.forEach(x=>per[x.id]={full:0,min:0,possible:0});
+  days.forEach(k=>{
+    const sc=score(k),st=sticker(k); ratioSum+=sc.ratio;
+    if(sc.done)anyDays++; if(st&&st.lvl==="good")good++; if(st&&st.lvl==="great")great++;
+    activeOn(k).forEach(x=>{const s=state(k,x.id); if(s==="full")per[x.id].full++; else if(s==="min")per[x.id].min++; if(x.daily)per[x.id].possible++});
+  });
+  return {days:days.length,good,great,stickers:good+great,anyDays,avg:days.length?ratioSum/days.length:0,per};
+}
+function renderMonth(){
+  const ym=viewMonth,[y,m]=ym.split("-").map(Number),t=todayKey();
+  let h=`<header><button class="nav" id="mprev">‹</button>
+    <div class="ttl"><h1>${y}년 ${m}월</h1><div class="s">잘 해낸 날엔 스티커</div></div>
+    <button class="nav" id="mnext" ${ym>=t.slice(0,7)?"disabled":""}>›</button></header>`;
+  const days=monthDays(ym), lead=(parse(days[0]).getDay()+6)%7;
+  h+=`<div class="card"><div class="cal">${["월","화","수","목","금","토","일"].map(w=>`<div class="wd">${w}</div>`).join("")}`;
+  for(let i=0;i<lead;i++)h+=`<div class="day empty"></div>`;
+  days.forEach(k=>{
+    const fut=k>t, st=fut?null:sticker(k), sc=fut?{ratio:0}:score(k);
+    const cls=["day",fut?"future":"",k===t?"today":"",st?(st.lvl==="some"?"some":"good"):""].join(" ");
+    h+=`<div class="${cls}" data-day="${k}"><span class="n">${parse(k).getDate()}</span><span class="st">${st&&st.e?st.e:""}</span>${!fut&&sc.ratio?`<span class="bar"><i style="width:${Math.round(sc.ratio*100)}%"></i></span>`:""}</div>`;
+  });
+  h+=`</div><div class="legend">🌷 절반 이상 · 🌈 80% 이상 · 최소 버전도 0.75점 · 날짜를 누르면 그날로 이동</div></div>`;
+
+  const s=monthStats(ym), p=monthStats(shiftMonth(ym,-1));
+  const diff=s.stickers-p.stickers;
+  h+=`<h2>이달의 성과</h2><div class="stats">
+    <div class="stat"><b>${s.stickers}</b><span>스티커</span></div>
+    <div class="stat"><b>${s.anyDays}</b><span>뭐라도 한 날</span></div>
+    <div class="stat"><b>${Math.round(s.avg*100)}%</b><span>평균 달성</span></div></div>`;
+  h+=`<div class="card msg" style="margin-top:8px">${monthMsg(s,p,diff)}</div>`;
+
+  h+=`<h2>습관별</h2><div class="card">`;
+  HABITS.forEach(x=>{
+    const v=s.per[x.id]; if(!v.full&&!v.min&&!v.possible)return;
+    const base=x.daily?Math.max(v.possible,1):Math.max(Math.ceil(s.days/7)*x.target,1);
+    const fw=Math.min(100,v.full/base*100), mw=Math.min(100-fw,v.min/base*100);
+    h+=`<div class="hrow"><span class="nm">${esc(x.label)}</span><span class="track"><i style="width:${fw}%;background:var(--g)"></i><i style="width:${mw}%;background:var(--s)"></i></span><span class="num">${v.full+v.min}${x.daily?" / "+v.possible+"일":"회"}</span></div>`;
+  });
+  h+=`<div class="legend">진한 초록 = 다 함 · 연한 초록 = 최소 버전</div></div>
+    <button class="btn" id="csvMonth">📊 이번 달 엑셀(CSV)로 내보내기</button>`;
+  return h;
+}
+function monthMsg(s,p,diff){
+  if(!s.days)return "아직 이 달의 기록이 없어.";
+  if(!s.anyDays)return "이번 달은 쉬어 간 달이야. 다음 달은 최소 버전 하나부터.";
+  let t=`${s.days}일 중 ${s.anyDays}일 동안 뭔가를 했어.`;
+  if(p.days){t+= diff>0?` 지난달보다 스티커가 ${diff}개 늘었어.`: diff<0?` 지난달보다 스티커는 ${-diff}개 적어. 그래도 기록한 것 자체가 쌓이는 중이야.`:` 지난달과 스티커 수가 같아. 유지도 실력이야.`}
+  return t;
+}
+
+/* ================== 기록·설정 ================== */
+function renderMore(){
+  return `<header><div></div><div class="ttl"><h1>기록 · 설정</h1></div><div></div></header>
+  <h2>엑셀로 내보내기</h2>
+  <div class="card msg">CSV 파일은 엑셀, 넘버스, 구글 시트에서 바로 열려.
+    <button class="btn" id="csvAll">📊 전체 기록 (일별)</button>
+    <button class="btn plain" id="csvSummary">📈 월별 요약</button>
+  </div>
+  <h2>백업</h2>
+  <div class="card msg">기록은 이 기기 안에만 저장돼. 한 달에 한 번 백업해 두면 폰을 바꾸거나 데이터가 지워져도 복구할 수 있어.
+    <button class="btn" id="backup">💾 백업 파일 저장</button>
+    <button class="btn plain" id="restore">↩️ 백업에서 복원</button>
+  </div>
+  <h2>시작일</h2>
+  <div class="card"><div class="row">시작일 <input type="date" id="startIn" value="${store.start}"></div>
+    <div class="small">주차는 이 날짜부터 계산돼. 근력운동은 1주차, 정리는 3주차, 공부는 5주차, 창작은 7주차부터 열려.</div></div>`;
+}
+
+/* ================== 내보내기 ================== */
+function download(name,text,type){
+  const blob=new Blob([text],{type});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function dailyCSV(keys){
+  const head=["날짜","요일","주차",...HABITS.map(x=>x.label),"한 개수","달성률(%)","스티커","메모"];
+  const rows=[head];
+  keys.forEach(k=>{
+    const act=activeOn(k).map(a=>a.id), sc=score(k), st=sticker(k);
+    rows.push([k,WD[parse(k).getDay()],weekNum(k),
+      ...HABITS.map(x=>!act.includes(x.id)?"":state(k,x.id)==="full"?"완료":state(k,x.id)==="min"?"최소":"-"),
+      sc.done,Math.round(sc.ratio*100),st&&st.e?st.e:"",dayData(k).note||""]);
+  });
+  return "﻿"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+}
+function allKeys(){const t=todayKey(),out=[];for(let k=store.start;k<=t;k=addDays(k,1))out.push(k);return out}
+function summaryCSV(){
+  const t=todayKey(); let ym=store.start.slice(0,7); const rows=[["월","기록 일수","뭐라도 한 날","스티커","🌈 80%+","평균 달성률(%)",...HABITS.map(x=>x.label+" (완료+최소)")]];
+  while(ym<=t.slice(0,7)){const s=monthStats(ym);
+    rows.push([ym,s.days,s.anyDays,s.stickers,s.great,Math.round(s.avg*100),...HABITS.map(x=>s.per[x.id].full+s.per[x.id].min)]);
+    ym=shiftMonth(ym,1)}
+  return "﻿"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+}
+
+/* ================== 렌더 ================== */
+function render(pop){
+  const w=document.getElementById("wrap");
+  w.innerHTML= tab==="today"?renderToday(pop): tab==="month"?renderMonth(): renderMore();
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  const $=id=>document.getElementById(id);
+  if(tab==="today"){
+    w.querySelectorAll("[data-a]").forEach(el=>el.onclick=()=>toggle(el.dataset.id,el.dataset.a));
+    $("prev").onclick=()=>{viewDate=addDays(viewDate,-1);render()};
+    $("next").onclick=()=>{if(viewDate<todayKey()){viewDate=addDays(viewDate,1);render()}};
+    $("note").oninput=e=>onNote(e.target.value);
+  }else if(tab==="month"){
+    $("mprev").onclick=()=>{viewMonth=shiftMonth(viewMonth,-1);render()};
+    $("mnext").onclick=()=>{if(viewMonth<todayKey().slice(0,7)){viewMonth=shiftMonth(viewMonth,1);render()}};
+    w.querySelectorAll("[data-day]").forEach(el=>el.onclick=()=>{const k=el.dataset.day;if(k>todayKey())return;viewDate=k;tab="today";render();window.scrollTo(0,0)});
+    $("csvMonth").onclick=()=>download(`천천히쌓기_${viewMonth}.csv`,dailyCSV(monthDays(viewMonth).filter(k=>k<=todayKey()&&k>=store.start)),"text/csv;charset=utf-8");
+  }else{
+    $("csvAll").onclick=()=>download(`천천히쌓기_전체_${todayKey()}.csv`,dailyCSV(allKeys()),"text/csv;charset=utf-8");
+    $("csvSummary").onclick=()=>download(`천천히쌓기_월별요약_${todayKey()}.csv`,summaryCSV(),"text/csv;charset=utf-8");
+    $("backup").onclick=()=>download(`천천히쌓기_백업_${todayKey()}.json`,JSON.stringify(store),"application/json");
+    $("restore").onclick=()=>$("fileIn").click();
+    $("startIn").onchange=e=>{if(e.target.value){store.start=e.target.value;save();toast("시작일 바꿨어")}};
+  }
+}
+document.getElementById("fileIn").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+  r.onload=()=>{try{const s=JSON.parse(r.result); if(!s||!s.days||!s.start)throw 0; store=s; save(); toast("복원했어"); render()}catch(_){toast("백업 파일이 아니야")} e.target.value=""};
+  r.readAsText(f);
+};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;if(tab==="month")viewMonth=viewDate.slice(0,7);render();window.scrollTo(0,0)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(viewDate>todayKey())viewDate=todayKey();render()}});
+render();
+</script>
+</body>
+</html>
