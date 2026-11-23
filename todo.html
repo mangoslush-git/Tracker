@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="할 일">
+<meta name="theme-color" content="#F3F4EE">
+<link rel="apple-touch-icon" href="todo-icon.png">
+<link rel="icon" href="todo-icon.png">
+<title>할 일</title>
+<style>
+:root{--bg:#F3F4EE;--card:#FFFDF9;--ink:#2B2F36;--sub:#7A7F88;--line:#E3E3D8;--g:#4F7F5B;--g-soft:#DCEBDD;--g-line:#BCD5BF;--s:#9DB88F;--amber:#A07A2C}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font-family:inherit}
+.wrap{max-width:520px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(90px + env(safe-area-inset-bottom))}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{font-size:13px;color:var(--sub);margin-bottom:12px}
+.cap{display:flex;gap:8px;margin-bottom:6px}
+.cap input{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;background:var(--card);color:var(--ink)}
+.cap button{border:0;background:var(--g);color:#fff;border-radius:12px;padding:0 16px;font-size:20px;cursor:pointer}
+.hint{font-size:12px;color:var(--sub);margin-bottom:14px}
+h2{font-size:13px;color:var(--sub);margin:22px 0 8px;display:flex;justify-content:space-between;align-items:center}
+h2 button{border:0;background:none;color:var(--g);font-size:13px;cursor:pointer}
+.task{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:8px}
+.task.today{border-color:var(--g-line);background:#F7FBF6}
+.row{display:flex;gap:10px;align-items:flex-start}
+.chk{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:#fff;cursor:pointer;margin-top:1px}
+.txt{flex:1;min-width:0;cursor:pointer}
+.t{font-size:15px;font-weight:600;word-break:break-word}
+.meta{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
+.first{font-size:13px;color:var(--g);margin-top:4px}
+.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:#EEF3E6;color:var(--g);margin-right:4px}
+.badge.low{background:#E8F1F7;color:#3F6E8C}
+.star{flex:0 0 auto;border:0;background:none;font-size:20px;cursor:pointer;padding:2px;opacity:.35}
+.star.on{opacity:1}
+.edit{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;display:grid;gap:8px}
+.edit label{font-size:12px;color:var(--sub)}
+.edit input,.edit textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;background:#fff;color:var(--ink)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button,.btns button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--g);border-color:var(--g);color:#fff}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btns .del{color:#A04A3C}
+.steps{margin:6px 0 0;padding:0;list-style:none}
+.steps li{display:flex;gap:8px;align-items:center;font-size:14px;padding:3px 0}
+.steps li input{width:18px;height:18px;accent-color:var(--g)}
+.steps li.done span{text-decoration:line-through;color:var(--sub)}
+.empty{font-size:14px;color:var(--sub);background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:14px;line-height:1.6}
+.big{display:block;width:100%;border:1px solid var(--g-line);background:var(--g-soft);color:var(--g);border-radius:12px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.big.plain{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:500}
+.pick{background:var(--g);color:#fff;border-radius:14px;padding:14px;margin-top:8px;font-size:15px;line-height:1.6}
+.pick b{font-size:17px}
+.donebox{display:flex;flex-wrap:wrap;gap:4px;font-size:22px;margin-top:4px}
+.doneitem{font-size:13px;color:var(--sub);padding:3px 0}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.tabs button{flex:1;max-width:173px;background:none;border:0;padding:12px 0 10px;font-size:13px;color:var(--sub);cursor:pointer}
+.tabs button .ic{display:block;font-size:20px;margin-bottom:2px}
+.tabs button.on{color:var(--g);font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--g);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;white-space:nowrap}
+.toast.on{opacity:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap"></div>
+<nav class="tabs">
+  <button data-tab="today"><span class="ic">☀️</span>오늘</button>
+  <button data-tab="all"><span class="ic">📥</span>전체</button>
+  <button data-tab="done"><span class="ic">🌈</span>한 일</button>
+</nav>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+<script>
+const KEY="todo-v1", TODAY_MAX=3, SOMEDAY_DAYS=14;
+const STICK=["🌷","🌼","🍓","🍊","🫐","🍑","🐣","🐝","🧁","🍋","🌈","🦄","🐬","🦋","🌻","🍀","🐸","🦩","🐙","🍉","🌸","⭐","🐞","🌱"];
+const pad=n=>String(n).padStart(2,"0");
+const dk=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>dk(new Date());
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+let S={tasks:[]};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.tasks)S=s}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast("저장이 안 돼. 홈 화면 앱으로 열어 줘")}}
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),1800)}
+
+let tab="today", openId=null, pickText="";
+const open=()=>S.tasks.filter(t=>!t.done);
+const isToday=t=>t.today===today();
+const daysSince=d=>Math.floor((new Date(today())-new Date(d))/86400000);
+const isSomeday=t=>!isToday(t)&&daysSince(t.touched||t.created)>=SOMEDAY_DAYS;
+
+function add(text){
+  text=text.trim(); if(!text)return;
+  S.tasks.unshift({id:uid(),text,first:"",energy:"",size:"",steps:[],today:tab==="today"&&open().filter(isToday).length<TODAY_MAX?today():"",created:today(),touched:today(),done:null});
+  save();render();
+}
+function upd(id,patch){const t=S.tasks.find(x=>x.id===id);Object.assign(t,patch,{touched:today()});save();}
+function complete(id){
+  const t=S.tasks.find(x=>x.id===id); t.done=today(); t.sticker=STICK[Math.floor(Math.random()*STICK.length)];
+  save(); toast(t.sticker+" 해냈어!"); openId=null; render();
+}
+function toggleToday(id){
+  const t=S.tasks.find(x=>x.id===id);
+  if(isToday(t)){upd(id,{today:""})}
+  else{ if(open().filter(isToday).length>=TODAY_MAX){toast("오늘은 "+TODAY_MAX+"개까지만. 하나 빼고 넣어 줘");return}
+    upd(id,{today:today()}) }
+  render();
+}
+
+function taskHTML(t){
+  const steps=t.steps||[], sd=steps.filter(s=>s.d).length;
+  let meta=[];
+  if(t.energy==="low")meta.push(`<span class="badge low">🪫 힘 없어도 OK</span>`);
+  if(t.energy==="high")meta.push(`<span class="badge">🔋 힘 있을 때</span>`);
+  if(t.size)meta.push(`<span class="badge">${{s:"5분",m:"30분",l:"1시간+"}[t.size]}</span>`);
+  if(steps.length)meta.push(`<span class="badge">단계 ${sd}/${steps.length}</span>`);
+  let h=`<div class="task ${isToday(t)?"today":""}"><div class="row">
+    <button class="chk" data-done="${t.id}" aria-label="완료"></button>
+    <div class="txt" data-open="${t.id}"><div class="t">${esc(t.text)}</div>
+      ${t.first?`<div class="first">👉 첫 동작: ${esc(t.first)}</div>`:""}
+      ${meta.length?`<div class="meta">${meta.join("")}</div>`:""}</div>
+    <button class="star ${isToday(t)?"on":""}" data-star="${t.id}" aria-label="오늘 할 일">☀️</button></div>`;
+  if(steps.length&&openId!==t.id){
+    const next=steps.find(s=>!s.d); if(next)h+=`<div class="meta" style="margin-left:40px">다음 단계: ${esc(next.t)}</div>`;
+  }
+  if(openId===t.id){
+    h+=`<div class="edit">
+      <div><label>할 일</label><input data-f="text" value="${esc(t.text)}"></div>
+      <div><label>첫 동작 (몸이 제일 먼저 할 것 하나)</label><input data-f="first" value="${esc(t.first)}" placeholder="예: 노트북 열고 파일 하나 열기"></div>
+      <div><label>에너지</label><div class="seg" data-seg="energy">
+        <button data-v="low" class="${t.energy==="low"?"on":""}">🪫 힘 없어도 OK</button>
+        <button data-v="high" class="${t.energy==="high"?"on":""}">🔋 힘 있을 때</button></div></div>
+      <div><label>크기</label><div class="seg" data-seg="size">
+        <button data-v="s" class="${t.size==="s"?"on":""}">5분</button>
+        <button data-v="m" class="${t.size==="m"?"on":""}">30분</button>
+        <button data-v="l" class="${t.size==="l"?"on":""}">1시간+</button></div></div>
+      <div><label>쪼개기 (큰 일은 작은 단계로)</label>
+        <ul class="steps">${steps.map((s,i)=>`<li class="${s.d?"done":""}"><input type="checkbox" data-step="${i}" ${s.d?"checked":""}><span>${esc(s.t)}</span></li>`).join("")}</ul>
+        <div class="cap" style="margin-top:6px"><input id="stepIn" placeholder="단계 추가 후 Enter" style="padding:9px;font-size:15px"><button id="stepAdd" style="font-size:16px">+</button></div></div>
+      <div class="btns"><button data-close="1">닫기</button><button class="del" data-del="${t.id}">삭제</button></div>
+    </div>`;
+  }
+  return h+`</div>`;
+}
+
+function renderToday(){
+  const td=open().filter(isToday), doneToday=S.tasks.filter(t=>t.done===today());
+  let h=`<h1>오늘</h1><div class="sub">오늘은 ${TODAY_MAX}개까지만. 나머지는 전체에서 기다려.</div>
+  <div class="cap"><input id="capIn" placeholder="생각나는 거 바로 적기" enterkeyhint="done"><button id="capBtn">+</button></div>
+  <div class="hint">분류하지 않아도 돼. 적기만 하면 돼.</div>`;
+  if(!td.length)h+=`<div class="empty">오늘 할 일이 비어 있어. 전체 탭에서 ☀️를 눌러 1~3개만 데려와.<br>아무것도 안 데려와도 괜찮은 날이야.</div>`;
+  td.forEach(t=>h+=taskHTML(t));
+  h+=`<button class="big" id="pickBtn">🎲 뭐부터 할지 모르겠어</button>
+      <button class="big plain" id="lowBtn">🪫 힘이 없어, 쉬운 거 하나만</button>`;
+  if(pickText)h+=`<div class="pick">${pickText}</div>`;
+  if(doneToday.length)h+=`<h2>오늘 한 것</h2><div class="donebox">${doneToday.map(t=>`<span title="${esc(t.text)}">${t.sticker}</span>`).join("")}</div>`;
+  return h;
+}
+function renderAll(){
+  const o=open(), active=o.filter(t=>!isSomeday(t)), some=o.filter(isSomeday);
+  let h=`<h1>전체</h1><div class="sub">적어 둔 모든 것. 순서 신경 쓰지 마.</div>
+  <div class="cap"><input id="capIn" placeholder="생각나는 거 바로 적기" enterkeyhint="done"><button id="capBtn">+</button></div><div class="hint">☀️ = 오늘로 데려오기</div>`;
+  if(!active.length&&!some.length)h+=`<div class="empty">비어 있어. 머릿속에 떠다니는 걸 여기 다 꺼내 놔.</div>`;
+  active.forEach(t=>h+=taskHTML(t));
+  if(some.length){h+=`<h2>언젠가 <span style="font-weight:400">${SOMEDAY_DAYS}일 넘게 안 건드린 것. 실패 아님, 보관 중.</span></h2>`;some.forEach(t=>h+=taskHTML(t))}
+  return h;
+}
+function renderDone(){
+  const d=S.tasks.filter(t=>t.done).sort((a,b)=>b.done.localeCompare(a.done));
+  const ym=today().slice(0,7), month=d.filter(t=>t.done.startsWith(ym));
+  let h=`<h1>한 일</h1><div class="sub">이번 달 <b>${month.length}개</b> 해냈어.</div>`;
+  h+=`<div class="card"><div class="donebox">${month.map(t=>t.sticker).join("")||"아직 없어. 하나 끝내면 스티커가 붙어."}</div></div>`;
+  let last="";
+  d.slice(0,60).forEach(t=>{ if(t.done!==last){h+=`<h2>${t.done}</h2>`;last=t.done}
+    h+=`<div class="doneitem">${t.sticker} ${esc(t.text)} <button data-undo="${t.id}" style="border:0;background:none;color:var(--sub);font-size:12px;cursor:pointer">되돌리기</button></div>`});
+  h+=`<h2>기록 · 백업</h2><div class="card">기록은 이 기기에만 저장돼. 가끔 백업해 둬.
+    <button class="big" id="csv">📊 엑셀(CSV)로 내보내기</button>
+    <button class="big plain" id="backup">💾 백업 파일 저장</button>
+    <button class="big plain" id="restore">↩️ 백업에서 복원</button></div>`;
+  return h;
+}
+
+function pick(low){
+  let pool=open().filter(isToday); if(!pool.length)pool=open().filter(t=>!isSomeday(t));
+  if(low)pool=pool.filter(t=>t.energy==="low"||t.size==="s");
+  if(!pool.length){pickText=low?"쉬운 거로 표시된 게 없어. 오늘은 쉬는 게 할 일이야. 물 한 잔 마시자.":"할 일이 비어 있어. 쉬어도 되는 날이야.";render();return}
+  const t=pool[Math.floor(Math.random()*pool.length)];
+  const next=(t.steps||[]).find(s=>!s.d);
+  pickText=`<b>${esc(t.text)}</b><br>${t.first?"👉 "+esc(t.first):next?"👉 "+esc(next.t):"👉 5분만 해 보고 그만둬도 돼"}`;
+  render();
+}
+
+function download(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+const cell=v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function csv(){const rows=[["할 일","상태","만든 날","끝낸 날","첫 동작","에너지","크기","단계"]];
+  S.tasks.forEach(t=>rows.push([t.text,t.done?"완료":"진행",t.created,t.done||"",t.first,{low:"힘 없어도 OK",high:"힘 있을 때"}[t.energy]||"",{s:"5분",m:"30분",l:"1시간+"}[t.size]||"",(t.steps||[]).map(s=>(s.d?"✓ ":"")+s.t).join(" / ")]));
+  return "﻿"+rows.map(r=>r.map(cell).join(",")).join("\r\n")}
+
+function render(){
+  const w=document.getElementById("wrap");
+  w.innerHTML=tab==="today"?renderToday():tab==="all"?renderAll():renderDone();
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  const $=id=>document.getElementById(id);
+  const cap=$("capIn"); if(cap){cap.onkeydown=e=>{if(e.key==="Enter"){add(cap.value);setTimeout(()=>$("capIn")&&$("capIn").focus(),0)}};$("capBtn").onclick=()=>add(cap.value)}
+  w.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>complete(b.dataset.done));
+  w.querySelectorAll("[data-star]").forEach(b=>b.onclick=()=>toggleToday(b.dataset.star));
+  w.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{openId=openId===b.dataset.open?null:b.dataset.open;render()});
+  w.querySelectorAll("[data-undo]").forEach(b=>b.onclick=()=>{upd(b.dataset.undo,{done:null});render()});
+  if(openId){
+    const t=S.tasks.find(x=>x.id===openId);
+    w.querySelectorAll("[data-f]").forEach(i=>i.onchange=()=>{upd(openId,{[i.dataset.f]:i.value});render()});
+    w.querySelectorAll("[data-seg]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{const f=g.dataset.seg;upd(openId,{[f]:t[f]===b.dataset.v?"":b.dataset.v});render()}));
+    w.querySelectorAll("[data-step]").forEach(c=>c.onchange=()=>{t.steps[+c.dataset.step].d=c.checked;upd(openId,{});
+      if(t.steps.length&&t.steps.every(s=>s.d)){complete(openId)}else render()});
+    const si=$("stepIn"), sa=()=>{if(si.value.trim()){t.steps=t.steps||[];t.steps.push({t:si.value.trim(),d:false});upd(openId,{});render();setTimeout(()=>$("stepIn")&&$("stepIn").focus(),0)}};
+    si.onkeydown=e=>{if(e.key==="Enter")sa()}; $("stepAdd").onclick=sa;
+    w.querySelector("[data-close]").onclick=()=>{openId=null;render()};
+    w.querySelector("[data-del]").onclick=()=>{S.tasks=S.tasks.filter(x=>x.id!==openId);openId=null;save();render()};
+  }
+  if($("pickBtn")){$("pickBtn").onclick=()=>pick(false);$("lowBtn").onclick=()=>pick(true)}
+  if($("csv")){$("csv").onclick=()=>download(`할일_${today()}.csv`,csv(),"text/csv;charset=utf-8");
+    $("backup").onclick=()=>download(`할일_백업_${today()}.json`,JSON.stringify(S),"application/json");
+    $("restore").onclick=()=>$("fileIn").click()}
+}
+document.getElementById("fileIn").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const s=JSON.parse(r.result);if(!s||!Array.isArray(s.tasks))throw 0;S=s;save();toast("복원했어");render()}catch(_){toast("백업 파일이 아니야")}e.target.value=""};r.readAsText(f)};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;openId=null;pickText="";render();window.scrollTo(0,0)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+render();
+</script>
+</body>
+</html>
